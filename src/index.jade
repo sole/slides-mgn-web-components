@@ -1,0 +1,710 @@
+doctype html
+html
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1, maximum-scale=1')
+    title Web Components
+
+    link(rel='stylesheet', type='text/css', href='css/fjalla.css')
+    link(rel='stylesheet', type='text/css', href='build/build.css')
+
+  body
+
+    article
+
+      section(data-bespoke-state='title')
+        h1.bullet Web Components
+
+      section
+        h2.bullet Soledad Penadés
+        h3.bullet devangeneering at Mozilla
+
+        ul
+          li @supersole
+          li #devrel / #devtools in irc.mozilla.org
+          li Based in London, so ~11-20h GMT
+
+      section
+        h2.bullet Web Components<span class="bullet">?</span>
+        ul
+          li "A tectonic shift in web development"
+          li "The declarative simplicity of using web components will be unparalelled"
+
+      section
+        h2.bullet No, but really<span class="bullet">, please?</span>
+        h1.bullet A series of technologies to make it easier to write modular, reusable front-end code
+
+      section
+        h1.bullet Why?
+        h3.bullet Web 1.0
+        ul
+          li simple documents. Homepages.
+        h3.bullet Web 1.5
+        ul
+          li Web rings! Java Applets! Flash!
+        h3.bullet Web 2.0
+        ul
+          li Modern JS! AJAX! JS Frameworks! JSON! JSONP!
+          li Code reuse. Mash-ups!
+          li Lots of jQuery plugins! "Designers can code"
+
+      section
+        h2.bullet Web 2.0 also brought us
+        ul
+          li Side effects
+          li CSS bleeding all over the page
+          li Bloated code
+          li Terrible mark-up
+
+      section
+        h2 Terrible mark-up, 1
+        pre.bullet
+          code.language-markup.
+            &lt;div class="widget calendar ui theme-winter"&gt;
+              &lt;div class="component-wrapper"&gt;
+                &lt;div class="inner-content"&gt;
+                  (ad nauseam)
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+
+      section
+        h2 Terrible mark-up, 2
+        pre.bullet
+          code.language-javascript.
+            $("#datepicker")
+              .datepicker($.datepicker.regional["fr"]);
+            $("#locale").change(function() {
+              $("#datepicker").datepicker("option",
+                $.datepicker.regional[ $(this).val() ] );
+            });
+
+
+      section
+        h1 What if the browser helped us write<br /><strong>better code</strong>?
+
+      section
+        h1.bullet What if we could<br /><strong>teach new elements</strong><br />to the browser?
+        
+      section
+        pre.bullet
+          code.language-markup.
+            &lt;x-calendar&gt;&lt;/x-calendar&gt;
+
+      section
+        pre.bullet
+          code.language-javascript.
+            var calendar =
+              document.createElement('x-calendar');
+
+            var calendar =
+              document.querySelector('x-calendar');
+      section
+        pre.bullet
+          code.language-javascript.
+            calendar.nextMonth();
+            calendar.setLocale('fr');
+
+      section
+        h2.bullet How do we make this happen?
+        h1.bullet With Web Components
+        ul
+          li Custom elements
+          li HTML templates
+          li Shadow DOM
+          li HTML imports
+
+      section
+        h1.bullet <a href="https://developer.mozilla.org/en-US/docs/Web/Web_Components/Custom_Elements">Custom elements</a>
+        h2.bullet Teach new elements to the browser
+        pre.bullet
+          code.language-javascript.
+            document.registerElement(
+              'web-bell',
+              WebBellPrototype
+            );
+
+      section
+        h1.bullet A custom element prototype
+        ul
+          li at least extends <tt>HTMLElement.prototype</tt>
+          li lifecycle callbacks
+          li methods
+          li getters, setters
+
+      section
+        h2.bullet WebBell Prototype:
+        pre.bullet
+          code.language-javascript.
+            var WebBellPrototype =
+              Object.create(HTMLElement.prototype);
+
+            WebBellPrototype.createdCallback = function() {
+              this.innerHTML = '🔔';
+            };
+
+      section
+        pre.bullet
+          code.language-javascript.
+            var bell =
+              document.createElement('web-bell');
+        pre.bullet
+          code.language-markup.
+            &lt;web-bell&gt;&lt;/web-bell&gt;
+
+      section
+        h2.bullet Style custom elements like any other element
+        pre.bullet
+          code.language-css.
+            web-bell {
+              border: 3px solid green;
+            }
+
+      section
+        h3.bullet Custom elements can<br />extend existing elements
+        h2.bullet by extending their prototype
+
+      section
+        pre.bullet
+          code.language-javascript.
+            var DingButtonProto =
+              Object.create(HTMLButtonElement.prototype);
+            DingButtonProto.createdCallback = function() {
+              this.innerHTML = 'ding!';
+            };
+            document.registerElement('ding-button', {
+              prototype: DingButtonProto,
+              extends: 'button'
+            });
+
+      section
+        pre.bullet
+          code.language-javascript.
+            var ding = document.createElement(
+              'button', 'ding-button'
+            );
+        pre.bullet
+          code.language-markup.
+            &lt;button is="ding-button"&gt;&lt;/button&gt;
+
+      section
+        h2.bullet This is amazing for <strong>accessibility</strong> and<br /><strong>progressive enhancement</strong>
+        h1.bullet It might also be deprecated soon
+
+      section
+        h2.bullet Custom elements support
+        ul
+          li Firefox
+          li Chrome
+          li Opera
+
+      section
+        h1.bullet <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/template">HTML Templates</a>
+        h2.bullet Inert HTML chunks
+        h3.bullet not live until you say so
+
+      section
+        pre.bullet
+          code.language-markup.
+            &lt;template id="row-template"&gt;
+              &lt;tr&gt;
+                &lt;td&gt;&lt;input .../&gt;&lt;/td&gt;
+                &lt;td&gt;&lt;button .../&gt;&lt;/td&gt;
+              &lt;/tr&gt;
+            &lt;/template&gt;
+
+      section
+        h2.bullet Creating rows on the fly
+        pre.bullet
+          code.language-javascript.
+            var tpl =
+              document.getElementById('row-template');
+            var table =
+              document.getElementById('form-table');
+            
+            table.appendChild(tpl.content.cloneNode());
+
+      section
+        h3.bullet HTML templates are very simple
+        ul
+          li No two way binding
+          li No string interpolation
+          li "Does what it says on the tin"
+
+      section
+        h2.bullet HTML Templates support
+        ul
+          li Firefox
+          li Chrome
+          li Opera
+          li Safari
+          li and in development in Edge
+
+      section
+        h1.bullet <a href="http://w3c.github.io/webcomponents/spec/shadow/">Shadow DOM</a>
+        h2.bullet Now you see it, now you don’t
+        ul
+          li Multiple DOM trees in a hierarchy
+          li Creates a boundary around your element
+          li Reset and isolate CSS styles, hide mark-up
+          li Superuseful for things such as players, calendars
+          li It is still in the same doc context (not an iframe)
+          li It’s <span class="bullet">complicated</span>
+
+      section
+        pre.bullet
+          code.language-javascript.
+            node.innerHTML = 'This is the light DOM';
+            var shadow = node.createShadowRoot({
+              mode: 'closed'
+            });
+            shadowRoot.innerHTML = 
+              'The Shadow DOM has taken over';
+
+      section(data-bespoke-state='feature')
+        img(src='images/shadowroots.png', style='height: auto; width: 300px; max-width: auto;')
+
+      section
+        h2.bullet Shadow DOM support
+        ul
+          li Chrome
+          li Opera
+          li Firefox: in development, behind a pref
+          li Edge: under consideration
+
+        p.bullet *Very unstable*.
+
+      section
+        h1.bullet <a href="http://w3c.github.io/webcomponents/spec/imports/">HTML imports</a>
+        h2.bullet Include HTML documents from other HTML documents
+        h3.bullet <tt>require()</tt> for the web
+        pre.bullet
+          code.language-markup.
+            &lt;link rel="import" href="my-component.html"&gt;
+
+      section
+        h2.bullet my-component.html's <tt>&lt;head&gt;</tt>
+        pre.bullet
+          code.language-markup.
+            &lt;script src="my-component.js"&gt;&lt;/script&gt;
+            &lt;link rel="stylesheet" href="my-component.css"&gt;
+
+      section
+        h2.bullet HTML Imports support
+        ul
+          li Chrome
+          li Opera
+          li Firefox: sort of available behind a flag, but will be removed
+          
+      section
+        h3.bullet Why will it be removed from Firefox?
+        h2.bullet Concerns regarding duplication of similar features
+        ul
+          li Service Workers
+          li ES6 modules
+          li Fetch API
+
+      section
+        h1.bullet Support recap
+        ul
+          li Chrome, Opera: everything
+          li Firefox: Behind a flag, everything except HTML imports
+          li Safari: Templates
+          li Edge: they're going to implement Templates and Shadow DOM
+        p
+        p.bullet Also, the spec is not finalised
+        p.bullet <a href="https://jonrimmer.github.io/are-we-componentized-yet/">Are we componentized yet?</a>
+
+      section
+        h1 “Nothing is<br />a <strong>standard</strong><br /> until there’s<br /><strong>several browsers</strong><br/> committed to it”
+        h2 –Anne van Kesteren.
+
+      section
+        h3.bullet but this is JavaScriptlandia
+        h2.bullet we have
+        h1.bullet polyfills!
+
+      section
+        h1.bullet <a href="https://github.com/WebComponents/webcomponentsjs"><tt>webcomponents.js</tt></a>
+        ul
+          li polyfills custom elements, HTML imports, Shadow DOM
+          li also <tt>WeakMap</tt> and Mutation Observers
+        h2.bullet <tt>webcomponents-lite.js</tt>
+        ul
+          li like the full polyfill, but it doesn't polyfill Shadow DOM
+
+      section
+        h2.bullet A note of warning
+        h1.bullet Polyfills are NOT FREE
+        ul
+          li They come at a cost (bandwidth, processing)
+          li The Shadow DOM polyfill is a huge beast
+          li You might run into issues with Shadow DOM scoped selectors
+          li Potential inconsistencies with the HTML imports polyfill
+
+      section
+        h1.bullet What about <a href="https://www.polymer-project.org/">Polymer</a>? <a href="http://x-tags.org/">X-Tag</a>? <a href="http://bosonic.github.io/">Bosonic</a>?
+        h2.bullet Syntactic sugar to make vanilla web components less sour <small class="bullet">(I ❤️ BAD PUNS)</small>
+        ul
+          li Built on top of the Web Components APIs
+          li ... or on the polyfills
+          li <strong>Not</strong> shipped with the browser!
+
+      section
+        h2.bullet X-Tag example
+        pre
+          code.language-javascript.
+            xtag.register('web-bell', {
+              extends: 'div',
+              lifecycle: {
+                created: function() {
+                  this.innerHTML = '🔔';
+                }
+              }
+            });
+
+      section
+        h2.bullet Polymer example
+        pre
+          code.language-javascript.
+            Polymer('web-bell', {
+              extends: 'div',
+              created: function() {
+                this.innerHTML = '🔔';
+              }
+            });
+
+      section
+        h3.bullet Very nice. Shall I use them?
+        h2.bullet Very nice indeed, but...
+        ul
+          li we're back to the jQuery/Moo situation
+          li you need the library the component was built with
+
+      section
+        h1 How do web components compare to JS frameworks?
+
+      section
+        h1 How well do they interoperate (or not)?
+
+      section
+        h3.bullet The beauty of components is that they’re just DOM elements
+        h2.bullet We <strong>should</strong> be able to use them across frameworks
+        h1.bullet 😏
+
+      section
+        h1.bullet jQuery
+        h2.bullet Works quite well!
+      section
+        h2.bullet jQuery
+        h3.bullet Creating instances w/attributes and properties works as expected
+        pre.bullet
+          code.language-javascript.
+            $('&lt;web-bell loud&gt;&lt;/web-bell&gt;');
+            
+      section
+        h2.bullet jQuery
+        h3.bullet Careful when setting properties
+        pre.bullet
+          code.language-javascript.
+            $('random-square').width = 15 ; // no
+            $('random-square')[0].width = 15; // yes
+
+      section
+        h1.bullet React
+        h2.bullet Works better the simpler your elements are:
+        ul
+          li Inheriting from <tt>HTMLElement</tt> prototype
+          li Not using certain attributes
+
+      section
+        h2.bullet React
+        h3.bullet You can't use custom elements by name in JSX 0.12 (fixed in 0.13)
+        pre.bullet
+          code.language-javascript.
+            var RandomSquareReact = React.createClass({
+              render: function() {
+                return &lt;random-square&gt;&lt;/random-square&gt;
+              }
+
+      section
+        h2.bullet React
+        h3.bullet Using <tt>is=""</tt> with JSX doesn't work
+        pre.bullet
+          code.language-javascript.
+            var ComponentWithBellButton = React.createClass({
+            render: function() {
+              return (
+                &lt;div&gt;Look at that button 
+                  &lt;button is="bell-button"&gt;&lt;/button&gt;
+                &lt;/div&gt;
+              );
+            }
+
+      section
+        h2.bullet React
+        h3.bullet Some attributes sanitised out
+        pre.bullet
+          code.language-javascript.
+            React.createElement('random-square', {
+              width: 150, // OK
+              height: 25, // OK
+              colour: '#f0f' // XXX
+            })
+
+      section
+        h2.bullet React
+        h3.bullet I couldn't figure out how to access the actual DOM
+        h3.bullet so I'm not sure how to call methods or set properties
+        h3.bullet ¯\_(ツ)_/¯
+
+
+      section
+        h1.bullet Ember and Angular
+        h2.bullet Pretty similar features<span class="bullet"><br />(and issues)</span>
+
+      section
+        h2 Ember
+        h3.bullet You can use custom elements in Handlebars templates
+        pre.bullet
+          code.language-markup.
+            &lt;script type="text/x-handlebars"&gt;
+              &lt;random-square&gt;&lt;/random-square&gt;
+            &lt;/script&gt;
+
+      section
+        h2 Ember
+        h3.bullet Remember to unescape variable values set in JS
+        pre.bullet
+          code.language-markup.
+            &lt;script type="text/x-handlebars"&gt;
+              {{{variableName}}}
+            &lt;/script&gt;
+
+      section
+        h2 Ember
+        h3.bullet Two way binding works
+        pre.bullet
+          code.language-markup.
+            {{input type="range" value=squareWidth
+              step="1" min="1" max="200" }}
+            &lt;random-square {{bind-attr width=squareWidth}}&gt;
+            &lt/random-square&gt;
+      section
+        h2 Ember
+        h3.bullet They have Ember components
+        pre.bullet
+          code.language-markup.
+            &lt;script type="text/x-handlebars"
+              id="components/random-square"&gt;
+              &lt;random-square&gt;&lt;/random-square&gt;
+            &lt;/script&gt;
+
+      section
+        h2 Ember
+        h3.bullet Components, 2
+        pre.bullet
+          code.language-javascript.
+            App.RandomSquare =
+              Ember.Component.extend({
+                tagName: 'span'
+              });
+
+      section
+        h2 Ember
+        h3.bullet Components, 3
+        pre.bullet
+          code.language-markup.
+            {{random-square}}
+
+      section
+        h2 Ember
+        h3.bullet Using <tt>is=""</tt> in Ember components makes them use the wrong prototype
+        pre.bullet
+          code.language-markup.
+            &lt;script type="text/x-handlebars"
+              id="components/bell-button"&gt;
+              &lt;button is="bell-button"&gt;&lt;/button&gt;
+            &lt;/script&gt;
+
+
+      section
+        h2 Ember
+        h3.bullet Don't use <tt>id</tt> properties in top level tags; Ember will overwrite them
+
+      section
+        h2.bullet Angular
+        h3.bullet Code is escaped as in Ember
+        pre.bullet
+          code.language-markup.
+            &lt;span ng-repeat="bell in bellbuttons"&gt;
+              {{bell}}
+            &lt;/span&gt;
+        pre.bullet
+          code.language-javascript.
+            $scope.bellbuttons =
+              [ '&lt;button is="bell-button"/&gt;' ];
+
+      section
+        h2.bullet Angular
+        h3.bullet Create elements in <strong>directives</strong> instead
+        pre.bullet
+          code.language-javascript.
+            .directive('my-thing', function() {
+              return {
+                //...
+                template: '&lt;my-thing&gt;&lt;/my-thing&gt;'
+                }
+              });
+
+      section
+        h2.bullet Angular
+        h3.bullet Two-way binding works
+        pre.bullet
+          code.language-markup.
+            &lt;input type="text" ng-model="width" value="50"&gt;
+            &lt;random-square width="{{width}}"&gt;&lt;/random-square&gt;
+
+      section
+        h2.bullet Angular
+        h3.bullet Unexpected instantiation
+        pre.bullet
+          code.language-markup.
+            &lt;span ng-repeat="bell in bellbuttons"&gt;
+              &lt;random-square&gt;&lt;/random-square&gt;
+            &lt;/span&gt;
+
+      section
+        h1.bullet The joint Ember and Angular <strong>weirdness</strong>
+        h2.bullet Extraneous elements with custom elements in templates
+
+      section
+        h2.bullet Ember weirdness example
+        pre.bullet
+          code.language-markup.
+            &lt;script type="text/x-handlebars"
+              id="components/random-square"&gt;
+              &lt;random-square&gt;&lt;/random-square&gt;
+            &lt;/script&gt;
+
+      section
+        pre.bullet
+          code.language-markup.
+            {{random-square}}
+
+        pre.bullet
+          code.language-markup.
+            &lt;random-square&gt;
+              &lt;canvas&gt;&lt;/canvas&gt;
+              &lt;canvas&gt;&lt;/canvas&gt;
+            &lt;/random-square&gt;
+
+      section
+        h2.bullet Angular weirdness example
+        pre.bullet
+          code.language-markup.
+            &lt;span ng-repeat="square in squares"&gt;
+              &lt;random-square&gt;&lt;/random-square&gt;
+            &lt;/span&gt;
+
+      section
+        pre.bullet
+          code.language-markup.
+            &lt;span&gt;
+              &lt;random-square&gt;
+                &lt;canvas&gt;&lt;/canvas&gt;
+                &lt;canvas&gt;&lt;/canvas&gt;
+              &lt;/random-square&gt;
+              &lt;random-square&gt;
+                &lt;canvas&gt;&lt;/canvas&gt;
+                &lt;canvas&gt;&lt;/canvas&gt;
+              &lt;/random-square&gt;
+            &lt;/span&gt;
+
+      section
+        h1.bullet Why?
+        h2.bullet Cloning non-inert content
+
+      section
+        h2.bullet Solutions?
+        ul
+          li <tt>innerHTML = '';</tt>
+          li or wait until <tt>attachedCallback</tt> to append the DOM
+
+      section(data-bespoke-fullscreenbackground='images/huh.gif', data-bespoke-state='oneliner')
+
+      section
+        h1 Are you <strong>sure</strong> Web Components are<br />a good idea?
+
+      section
+        h2.bullet Modularising and isolating your code <strong>is a good idea</strong>
+        h1.bullet I call this<br/><strong>defensive design</strong>
+
+      section
+        h2.bullet Even if platform support is not there yet
+        h1.bullet You can think in terms of components already
+
+      section
+        h1.bullet Don’t tie your code to an specific framework
+        h2.bullet Easier to share/reuse
+
+      section
+        h1.bullet If you can afford to experiment
+        h2.bullet Go full in<span class="bullet">, use the edgiest features</span><span class="bullet"> and provide feedback!</span>
+
+      section
+        h1.bullet If you can’t control the environment
+        h2.bullet Err on the safest side: <span class="bullet"><br />use custom elements only</span>
+
+      section
+        h1.bullet Fail-safe custom elements recipe
+        ul
+          li Use the smallest polyfill
+          li Don’t use the <tt>is=""</tt> syntax
+          li Have a <tt>.js</tt> and <tt>.css</tt> per component
+          li Use existing tooling to minimise all your .js/.css
+          li Be aware of React/Ember/Angular/... weirdnesses
+          li Don’t take anything for granted. Set defaults everywhere!
+
+      section
+        h2.bullet As you start refactoring,
+        h1.bullet your controllers<br/>will get leaner and more expressive
+
+      section
+        h2 As you start refactoring,
+        h1 your <del>controllers</del><br />will get leaner and more expressive
+      section
+        h2 As you start refactoring,
+        h1 your code<br />will get leaner and beautiful
+
+      section
+        pre.bullet
+          code.language-markup.
+            &lt;div class="widget calendar ui theme-winter"&gt;
+              &lt;div class="component-wrapper"&gt;
+                &lt;div class="inner-content"&gt;
+                  (ad nauseam)
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+
+      section
+        pre.bullet
+          code.language-markup.
+            &lt;x-calendar&gt;&lt;/x-calendar&gt;
+
+      section
+        h1 Real life examples
+        ul
+          li Firefox OS refactored to use web components for UI elements
+          li The Guardian's dashboard using Polymer + Material design comps
+          li Chrome's Platform Status is built on Polymer
+          li GitHub <tt>&lt;time is=""&gt;</tt> custom element for timestamps
+
+
+      section
+        h1 Thanks!
+        h2 @supersole
+        h3 <a href="http://soledadpenades.com">soledadpenades.com</a>
+
+    script(src='build/build.js')
