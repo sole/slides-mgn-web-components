@@ -2,7 +2,7 @@
 
 ## View slides online
 
-[Here](http://soledadpenades.com/files/t/201508096_web_components)
+[Here](http://soledadpenades.com/files/t/20150806_web_components)
 
 Also see the counterpart repo where I informally experimented with [interoperability between web components and frameworks](https://github.com/sole/wc-interop).
 
